@@ -1,73 +1,174 @@
-import pygame
-import sys
-
-# Initialize Pygame
+mport pygame
 pygame.init()
 
-# Constants
-WIDTH, HEIGHT = 800, 600
-FPS = 60
+###############################################
+###############################################
+# ENTER HERE THE SIZE OF THE SOURCE IMAGES
+# Background
+BG_IMAGE_WIDTH = 176
+BG_IMAGE_HEIGHT = 224
+# Characters
+CH_IMAGE_WIDTH = 100
+CH_IMAGE_HEIGHT = 100
+STBY_IMAGE_WIDTH = 100
+STBY_IMAGE_HEIGHT = 100
+#Scale amount
+Scale = 3
+###############################################
+###############################################
 
-# Colors
-WHITE = (255, 255, 255)
+# WINDOW SIZE SET TO THE SIZE OF BG*SCALE
+WINDOW_WIDTH = BG_IMAGE_WIDTH*Scale
+WINDOW_HEIGHT = BG_IMAGE_HEIGHT*Scale
 
-# Create the game window
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Sprite Movement")
+win = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+pygame.display.set_caption("First Game")
 
-# Clock to control the frame rate
+# COLOR SHORTCUTS
+WHITE = (255,255,255)
+
+###############################################
+
+# UP IMAGE LOAD
+DEFAULT_CH_IMAGE_SIZE = (CH_IMAGE_WIDTH*Scale, CH_IMAGE_HEIGHT*Scale)
+#load image
+up1 = pygame.image.load('assets/1.png')
+up2 = pygame.image.load('assets/2.png')
+up3 = pygame.image.load('assets/3.png')
+up4 = pygame.image.load('assets/4.png')
+#size adjustment
+up1 = pygame.transform.scale(up1, DEFAULT_CH_IMAGE_SIZE)
+up2 = pygame.transform.scale(up2, DEFAULT_CH_IMAGE_SIZE)
+up3 = pygame.transform.scale(up3, DEFAULT_CH_IMAGE_SIZE)
+up4 = pygame.transform.scale(up4, DEFAULT_CH_IMAGE_SIZE)
+#transparent background
+up1.set_colorkey(WHITE)
+up2.set_colorkey(WHITE)
+up3.set_colorkey(WHITE)
+up4.set_colorkey(WHITE)
+
+# DOWN IMAGE LOAD
+#load image
+down1 = pygame.image.load('assets/6.png')
+down2 = pygame.image.load('assets/7.png')
+down3 = pygame.image.load('assets/8.png')
+down4 = pygame.image.load('assets/9.png')
+#size adjustment
+down1 = pygame.transform.scale(down1, DEFAULT_CH_IMAGE_SIZE)
+down2 = pygame.transform.scale(down2, DEFAULT_CH_IMAGE_SIZE)
+down3 = pygame.transform.scale(down3, DEFAULT_CH_IMAGE_SIZE)
+down4 = pygame.transform.scale(down4, DEFAULT_CH_IMAGE_SIZE)
+#transparent background
+down1.set_colorkey(WHITE)
+down2.set_colorkey(WHITE)
+down3.set_colorkey(WHITE)
+down4.set_colorkey(WHITE)
+
+#put up and down is list
+walkUp = [up1, up2, up3, up4]
+walkDown = [down1, down2, down3, down4]
+
+###############################################
+
+# BACKGROUND IMAGE LOAD
+DEFAULT_BG_IMAGE_SIZE = (WINDOW_WIDTH, WINDOW_HEIGHT)
+#load image
+bg = pygame.image.load('assets/barrack.png')
+#size adjustment
+bg = pygame.transform.scale(bg, DEFAULT_BG_IMAGE_SIZE)
+
+###############################################
+
+# STANDBY IMAGE LOAD
+DEFAULT_STBY_IMAGE_SIZE = (STBY_IMAGE_WIDTH*Scale, STBY_IMAGE_HEIGHT*Scale)
+#load image
+char = pygame.image.load('assets/1.png')
+#size adjustment
+char = pygame.transform.scale(char, DEFAULT_STBY_IMAGE_SIZE)
+#transparent background
+char.set_colorkey(WHITE)
+
+###############################################
+
+# Rest of the Code
+x = WINDOW_WIDTH/2
+y = WINDOW_HEIGHT/2
+width = 40
+height = 60
+vel = 5
+walkCountMax = 12
+
 clock = pygame.time.Clock()
 
-class Player(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
-        self.image = pygame.image.load("assets/player.png")  # Replace with your spritesheet image path
-        self.rect = self.image.get_rect()
-        self.frame_index = 0
-        self.animation_speed = 0.1
-        self.last_update = pygame.time.get_ticks()
+isJump = False
+jumpCount = 10
 
-    def update(self):
-        now = pygame.time.get_ticks()
-        if now - self.last_update > self.animation_speed * 1000:
-            self.last_update = now
-            self.frame_index = (self.frame_index + 1) % 5  # Change 5 to the number of frames in your spritesheet
-            self.image = self.get_image(self.frame_index)
+left = False
+right = False
+walkCount = 0
 
-    def get_image(self, frame):
-        frame_width = self.rect.width / 5  # Change 5 to the number of frames in your spritesheet
-        frame_height = self.rect.height
-        rect = pygame.Rect(frame * frame_width, 0, frame_width, frame_height)
-        image = pygame.Surface(rect.size).convert()
-        image.blit(self.image, (0, 0), rect)
-        image.set_colorkey(WHITE)
-        return image
+def redrawGameWindow():
+    global walkCount
+    
+    win.blit(bg, (0,0))  
+    if walkCount + 1 >= walkCountMax:
+        walkCount = 0
+        
+    if left:  
+        win.blit(walkUp[walkCount//3], (x,y))
+        walkCount += 1                          
+    elif right:
+        win.blit(walkDown[walkCount//3], (x,y))
+        walkCount += 1
+    else:
+        win.blit(char, (x, y))
+        walkCount = 0
+        
+    pygame.display.update() 
+    
 
-# Create sprite groups
-all_sprites = pygame.sprite.Group()
-player = Player()
-all_sprites.add(player)
 
-# Game loop
-running = True
-while running:
+run = True
+
+while run:
+    clock.tick(walkCountMax)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            run = False
 
-    # Update
-    all_sprites.update()
+    keys = pygame.key.get_pressed()
+    
+    if keys[pygame.K_UP]: #and x > vel: 
+        y -= vel
+        left = True
+        right = False
 
-    # Draw
-    screen.fill(WHITE)
-    all_sprites.draw(screen)
+    elif keys[pygame.K_DOWN]: #and x < 500 - vel - width:  
+        y += vel
+        left = False
+        right = True
+        
+    else: 
+        left = False
+        right = False
+        walkCount = 0
+        
+    if not(isJump):
+        if keys[pygame.K_SPACE]:
+            isJump = True
+            left = False
+            right = False
+            walkCount = 0
+    else:
+        if jumpCount >= -10:
+            y -= (jumpCount * abs(jumpCount)) * 0.5
+            jumpCount -= 1
+        else: 
+            jumpCount = 10
+            isJump = False
 
-    # Flip the display
-    pygame.display.flip()
-
-    # Cap the frame rate
-    clock.tick(FPS)
-
-# Quit the game
+    redrawGameWindow() 
+    
+    
 pygame.quit()
-sys.exit()
