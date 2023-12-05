@@ -5,8 +5,8 @@ pygame.init()
 ###############################################
 # ENTER HERE THE SIZE OF THE SOURCE IMAGES
 # Background
-BG_IMAGE_WIDTH = 176
-BG_IMAGE_HEIGHT = 224
+    BG_IMAGE_WIDTH = 176
+    BG_IMAGE_HEIGHT = 224
 # Characters
 CH_IMAGE_WIDTH = 100
 CH_IMAGE_HEIGHT = 100
